@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D7F8073D-06CD-4F02-8E97-27B372D722C3}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchService", "TwitchService\TwitchService.csproj", "{59CA8B09-D7EC-4DBE-8A58-126A68252516}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieHandlerService", "MovieHandlerService\MovieHandlerService.csproj", "{69C6F66F-6325-41AD-9152-882EE7CEFD98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseService", "DatabaseService\DatabaseService.csproj", "{2BA40098-41CD-4AF4-9172-82229EF13912}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseService.Tests", "DatabaseService.Tests\DatabaseService.Tests.csproj", "{3DDA68A7-593C-48AA-9223-9F914B294E21}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59CA8B09-D7EC-4DBE-8A58-126A68252516}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59CA8B09-D7EC-4DBE-8A58-126A68252516}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59CA8B09-D7EC-4DBE-8A58-126A68252516}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59CA8B09-D7EC-4DBE-8A58-126A68252516}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69C6F66F-6325-41AD-9152-882EE7CEFD98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69C6F66F-6325-41AD-9152-882EE7CEFD98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69C6F66F-6325-41AD-9152-882EE7CEFD98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69C6F66F-6325-41AD-9152-882EE7CEFD98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BA40098-41CD-4AF4-9172-82229EF13912}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BA40098-41CD-4AF4-9172-82229EF13912}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BA40098-41CD-4AF4-9172-82229EF13912}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BA40098-41CD-4AF4-9172-82229EF13912}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DDA68A7-593C-48AA-9223-9F914B294E21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DDA68A7-593C-48AA-9223-9F914B294E21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DDA68A7-593C-48AA-9223-9F914B294E21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DDA68A7-593C-48AA-9223-9F914B294E21}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
