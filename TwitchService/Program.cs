@@ -7,6 +7,7 @@ using TwitchLib.Client.Events;
 using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
+using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
 
 namespace TwitchService;
@@ -61,6 +62,7 @@ internal class RecordsBot
         _client.OnJoinedChannel += Client_OnJoinedChannel;
         _client.OnMessageReceived += Client_OnMessageReceived;
         _client.OnChatCommandReceived += Client_OnChatCommandReceived;
+        _client.OnDisconnected += Client_OnDisconnected;
 
         _client.Connect();
     }
@@ -111,9 +113,10 @@ internal class RecordsBot
         }
     }
 
-    private void Client_OnDisconnect(object? sender, OnDisconnectedArgs e)
+    private void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)
     {
         // TODO handle graceful ending for background services before termination...
+        //  or whatever the proper process is
     }
 
     private void Shutdown()
