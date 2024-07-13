@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="../DatabaseService/DatabaseService.csproj" />
+      <ProjectReference Include="../MovieHandlerService/MovieHandlerService.csproj" />
     </ItemGroup>
 
     <ItemGroup>
