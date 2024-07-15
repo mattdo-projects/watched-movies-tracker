@@ -1,10 +1,7 @@
 ﻿using System.Globalization;
-using DatabaseService;
 using MovieHandlerService.Handlers;
 using TwitchLib.Client;
-using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
-using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
@@ -50,11 +47,12 @@ internal class RecordsBot
 
         var customClient = new WebSocketClient(clientOptions);
         _client = new TwitchClient(customClient);
-        _client.AddChatCommandIdentifier(CommandPrefix);
 
         _client.Initialize(
             credentials,
-            Environment.GetEnvironmentVariable("TWITCH_USN")
+            Environment.GetEnvironmentVariable("TWITCH_USN"),
+            CommandPrefix, // default is '!' and is configured as such, but good for future use to leave this here.
+            CommandPrefix
             );
 
         _client.OnLog += Client_OnLog;
@@ -77,7 +75,7 @@ internal class RecordsBot
         Console.WriteLine($"Connected to {e.AutoJoinChannel}");
     }
 
-    private void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
+    private async void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
     {
         _client.SendMessage(e.Channel, $"Connected to channel {e.Channel}");
     }
