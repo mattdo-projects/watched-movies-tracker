@@ -6,6 +6,7 @@ using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
+using TwitchService.Utils;
 
 namespace TwitchService;
 
@@ -16,9 +17,13 @@ internal static class Program
         var shutdownEvent = new AutoResetEvent(false);
         _ = new RecordsBot(shutdownEvent);
 
-        // TODO enable console interactions
+        Console.WriteLine("Bot initialized, entering wait state.");
 
+        // Wait for the shutdown signal
         shutdownEvent.WaitOne();
+
+        // Adding logging to confirm program termination
+        Console.WriteLine("Program terminated.");
     }
 }
 
@@ -26,8 +31,9 @@ internal class RecordsBot
 {
     private const char CommandPrefix = '!';
     private readonly TwitchClient _client;
-    private readonly QueryHandler _queryHandler = new();
+    private readonly QueryHandler _queryHandler;
     private readonly AutoResetEvent _shutdownEvent;
+    private readonly CommandHandler _commandHandler;
 
     public RecordsBot(AutoResetEvent shutdownEvent)
     {
@@ -51,7 +57,8 @@ internal class RecordsBot
         _client.Initialize(
             credentials,
             Environment.GetEnvironmentVariable("TWITCH_USN"),
-            CommandPrefix, // default is '!' and is configured as such, but good for future use to leave this here.
+            CommandPrefix, // default is '!' and is configured as such,
+                           // but good for future config to leave it here.
             CommandPrefix
             );
 
@@ -62,12 +69,17 @@ internal class RecordsBot
         _client.OnChatCommandReceived += Client_OnChatCommandReceived;
         _client.OnDisconnected += Client_OnDisconnected;
 
+        _queryHandler = new QueryHandler();
+        _commandHandler = new CommandHandler(_client);
+
         _client.Connect();
     }
 
     private static void Client_OnLog(object? sender, OnLogArgs e)
     {
-        Console.WriteLine($"{e.BotUsername} :: {e.DateTime.ToString(CultureInfo.InvariantCulture)} :: {e.Data}");
+        Console.WriteLine($"{e.BotUsername} :: " +
+                          $"{e.DateTime.ToString(CultureInfo.InvariantCulture)} :: " +
+                          $"{e.Data}");
     }
 
     private void Client_OnConnected(object? sender, OnConnectedArgs e)
@@ -75,9 +87,9 @@ internal class RecordsBot
         Console.WriteLine($"Connected to {e.AutoJoinChannel}");
     }
 
-    private async void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
+    private void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
     {
-        _client.SendMessage(e.Channel, $"Connected to channel {e.Channel}");
+        SendMessage(e.Channel, $"Connected to channel {e.Channel}");
     }
 
     private void Client_OnMessageReceived(object? sender, OnMessageReceivedArgs e)
@@ -87,34 +99,31 @@ internal class RecordsBot
 
     private void Client_OnChatCommandReceived(object? sender, OnChatCommandReceivedArgs e)
     {
-        switch (e.Command.CommandText)
+        // TODO replace debug stuff with actual implementation.
+        //  - formatting string and list func.
+        //  - handle twitch filtering, limits, safety mechanisms
+        //  - dynamic command handling
+
+        // For now, termination process will be kept a separate case,
+        // since it handles sensitive functionality.
+        if (e.Command.CommandText == "exit") Shutdown();
+
+        if (_commandHandler.Execute(e) == 1)
         {
-            case "search":
-            {
-                // TODO replace debug stuff with actual implementation.
-                //  - formatting string and list func.
-                //  - handle twitch filtering, limits, safety mechanisms
-                //  - dynamic command handling
-                var values = _queryHandler.MovieNameFindLastWatchedDate(
-                    e.Command.ArgumentsAsString,
-                    false
-                    );
-                if (values == null) return;
-                var message = string.Concat(values);
-                _client.SendMessage(e.Command.ChatMessage.Channel, message);
-                break;
-            }
-            case "done" when
-                e.Command.ChatMessage.Username == Environment.GetEnvironmentVariable("TWITCH_OWNER_USN"):
-                Shutdown();
-                break;
+            SendMessage(e.Command.ChatMessage.Channel, ":PoroSad: Command not found...");
         }
+    }
+
+    private void SendMessage(string channel, string message)
+    {
+        _client.SendMessage(channel, message);
     }
 
     private void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)
     {
         // TODO handle graceful ending for background services before termination...
         //  or whatever the proper process is
+        Console.WriteLine("Client is disconnecting from twitch...");
     }
 
     private void Shutdown()

@@ -1,27 +1,39 @@
+using TwitchLib.Client;
 using TwitchLib.Client.Events;
 
 namespace TwitchService.Utils;
 
-public static class CommandHandler
+/// <summary>
+/// Handles the command functionality at large.
+/// </summary>
+public class CommandHandler
 {
-    private static readonly List<Command> Commands = [];
+    private readonly List<Command> _commands = [];
+    private readonly TwitchClient _client;
 
-    public static void Register(Command command)
+    public CommandHandler(TwitchClient client)
     {
-        Commands.Add(command);
+        _client = client;
+
+        Register(new SampleCommand());
     }
 
-    public static int Execute(string command, OnChatCommandReceivedArgs e)
+    private void Register(Command command)
     {
-        var matchingCommand = GetMatchingCommand(command);
+        _commands.Add(command);
+    }
+
+    public int Execute(OnChatCommandReceivedArgs e)
+    {
+        var matchingCommand = GetMatchingCommand(e.Command.CommandText);
         if (matchingCommand == null) return 1;
-        matchingCommand.Execute(e);
-        return 0;
 
+        matchingCommand.Execute(e, _client);
+        return 0;
     }
 
-    private static Command? GetMatchingCommand(string commandString)
+    private Command? GetMatchingCommand(string commandString)
     {
-        return Commands.FirstOrDefault(command => commandString == command.CommandString);
+        return _commands.FirstOrDefault(command => command.CommandString == commandString);
     }
 }
