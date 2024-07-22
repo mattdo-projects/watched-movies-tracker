@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using DatabaseService;
 using MovieHandlerService.Handlers;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
@@ -106,7 +107,7 @@ internal class RecordsBot
 
         // For now, termination process will be kept a separate case,
         // since it handles sensitive functionality.
-        if (e.Command.CommandText == "exit") Shutdown();
+        if (e.Command.CommandText == "exit") Shutdown(e.Command.ChatMessage.Channel);
 
         if (_commandHandler.Execute(e) == 1)
         {
@@ -126,9 +127,11 @@ internal class RecordsBot
         Console.WriteLine("Client is disconnecting from twitch...");
     }
 
-    private void Shutdown()
+    private void Shutdown(string channel)
     {
+        SendMessage(channel, "Initiating shutdown...");
         _client.Disconnect();
+        DbHandler.DisconnectDatabase();
         _shutdownEvent.Set();
     }
 }

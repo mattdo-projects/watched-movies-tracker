@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using System.Data;
+using Npgsql;
 using DatabaseService.Utils;
 
 namespace DatabaseService;
@@ -6,6 +7,7 @@ namespace DatabaseService;
 public static class DbHandler
 {
     private static readonly Lazy<NpgsqlConnection> Lazy;
+    private static int _activeTransactions;
 
     static DbHandler()
     {
@@ -68,12 +70,23 @@ public static class DbHandler
 
         using var conn = new NpgsqlConnection(Connection.ConnectionString);
         conn.Open();
-        using var cmd = new NpgsqlCommand(insertQuery, conn);
-        cmd.Parameters.AddWithValue("@short", lower);
-        cmd.Parameters.AddWithValue("@full", movie);
-        cmd.Parameters.AddWithValue("@lastSeen", lastSeen);
 
-        cmd.ExecuteScalar();
+        Interlocked.Increment(ref _activeTransactions);
+
+        try
+        {
+            using var cmd = new NpgsqlCommand(insertQuery, conn);
+            cmd.Parameters.AddWithValue("@short", lower);
+            cmd.Parameters.AddWithValue("@full", movie);
+            cmd.Parameters.AddWithValue("@lastSeen", lastSeen);
+
+            cmd.ExecuteScalar();
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeTransactions);
+            conn.Close();
+        }
     }
 
     public static void DeleteWatchedMovie(string normalizedTitle)
@@ -86,10 +99,20 @@ public static class DbHandler
 
         using var conn = new NpgsqlConnection(Connection.ConnectionString);
         conn.Open();
-        using var cmd = new NpgsqlCommand(deleteQuery, conn);
-        cmd.Parameters.AddWithValue("@short", normalizedTitle);
 
-        cmd.ExecuteScalar();
+        Interlocked.Increment(ref _activeTransactions);
+
+        try
+        {
+            using var cmd = new NpgsqlCommand(deleteQuery, conn);
+            cmd.Parameters.AddWithValue("@short", normalizedTitle);
+            cmd.ExecuteScalar();
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeTransactions);
+            conn.Close();
+        }
     }
 
     /// <summary>
@@ -110,18 +133,29 @@ public static class DbHandler
 
         using var conn = new NpgsqlConnection(Connection.ConnectionString);
         conn.Open();
-        normalizedTitle = SanitizeTitle.Sanitize(normalizedTitle);
-        using var cmd = new NpgsqlCommand(searchQuery, conn);
-        cmd.Parameters.AddWithValue("@short", normalizedTitle);
 
-        var result = cmd.ExecuteScalar();
+        Interlocked.Increment(ref _activeTransactions);
 
-        if (result == DBNull.Value || result == null)
+        try
         {
-            return DateTime.MinValue;
-        }
+            normalizedTitle = SanitizeTitle.Sanitize(normalizedTitle);
+            using var cmd = new NpgsqlCommand(searchQuery, conn);
+            cmd.Parameters.AddWithValue("@short", normalizedTitle);
 
-        return (DateTime) result;
+            var result = cmd.ExecuteScalar();
+
+            if (result == DBNull.Value || result == null)
+            {
+                return DateTime.MinValue;
+            }
+
+            return (DateTime)result;
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeTransactions);
+            conn.Close();
+        }
     }
 
     public static string? GetFirstMovies()
@@ -134,9 +168,38 @@ public static class DbHandler
 
         using var conn = new NpgsqlConnection(Connection.ConnectionString);
         conn.Open();
-        using var cmd = new NpgsqlCommand(searchQuery, conn);
-        using var reader = cmd.ExecuteReader();
 
-        return reader.Read() ? reader["movie_name"].ToString() : null;
+        Interlocked.Increment(ref _activeTransactions);
+        try
+        {
+            using var cmd = new NpgsqlCommand(searchQuery, conn);
+            using var reader = cmd.ExecuteReader();
+
+            return reader.Read() ? reader["movie_name"].ToString() : null;
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeTransactions);
+            conn.Close();
+        }
+    }
+
+    public static void DisconnectDatabase()
+    {
+        Console.WriteLine("Initiating db shutdown...");
+
+        while (_activeTransactions > 0)
+        {
+            Console.WriteLine($"Waiting for {_activeTransactions} transaction(s) to complete...");
+            Thread.Sleep(1000);
+        }
+
+        if (Connection.State != ConnectionState.Closed)
+        {
+            Connection.Close();
+            Console.WriteLine("Database connection closed.");
+        }
+
+        Console.WriteLine("Database shutdown complete.");
     }
 }
