@@ -1,7 +1,7 @@
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 
-namespace TwitchService.Utils;
+namespace TwitchService.Handlers;
 
 /// <summary>
 /// Base class for commands.

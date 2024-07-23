@@ -7,7 +7,7 @@ using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
-using TwitchService.Utils;
+using TwitchService.Handlers;
 
 namespace TwitchService;
 
@@ -32,7 +32,6 @@ internal class RecordsBot
 {
     private const char CommandPrefix = '!';
     private readonly TwitchClient _client;
-    private readonly QueryHandler _queryHandler;
     private readonly AutoResetEvent _shutdownEvent;
     private readonly CommandHandler _commandHandler;
 
@@ -70,7 +69,6 @@ internal class RecordsBot
         _client.OnChatCommandReceived += Client_OnChatCommandReceived;
         _client.OnDisconnected += Client_OnDisconnected;
 
-        _queryHandler = new QueryHandler();
         _commandHandler = new CommandHandler(_client);
 
         _client.Connect();
