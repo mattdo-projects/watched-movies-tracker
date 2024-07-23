@@ -1,12 +1,12 @@
 ﻿using System.Globalization;
-using DatabaseService;
-using MovieHandlerService.Handlers;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Events;
 using TwitchLib.Communication.Models;
+using DatabaseService;
+using MovieHandlerService.Handlers;
 using TwitchService.Handlers;
 
 namespace TwitchService;
@@ -33,6 +33,7 @@ internal class RecordsBot
     private const char CommandPrefix = '!';
     private readonly TwitchClient _client;
     private readonly AutoResetEvent _shutdownEvent;
+    private readonly ChatHandler _chatHandler;
     private readonly CommandHandler _commandHandler;
 
     public RecordsBot(AutoResetEvent shutdownEvent)
@@ -69,7 +70,8 @@ internal class RecordsBot
         _client.OnChatCommandReceived += Client_OnChatCommandReceived;
         _client.OnDisconnected += Client_OnDisconnected;
 
-        _commandHandler = new CommandHandler(_client);
+        _chatHandler = new ChatHandler(_client);
+        _commandHandler = new CommandHandler(_chatHandler);
 
         _client.Connect();
     }
@@ -88,7 +90,9 @@ internal class RecordsBot
 
     private void Client_OnJoinedChannel(object? sender, OnJoinedChannelArgs e)
     {
-        SendMessage(e.Channel, $"Connected to channel {e.Channel}");
+        _chatHandler.SendMessage(
+            e.Channel,
+            $"Now operating assistance on {e.Channel}!");
     }
 
     private void Client_OnMessageReceived(object? sender, OnMessageReceivedArgs e)
@@ -109,13 +113,10 @@ internal class RecordsBot
 
         if (_commandHandler.Execute(e) == 1)
         {
-            SendMessage(e.Command.ChatMessage.Channel, ":PoroSad: Command not found...");
+            _chatHandler.SendMessage(
+                e.Command.ChatMessage.Channel,
+                "PoroSad Command not found...");
         }
-    }
-
-    private void SendMessage(string channel, string message)
-    {
-        _client.SendMessage(channel, message);
     }
 
     private void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)
@@ -127,7 +128,9 @@ internal class RecordsBot
 
     private void Shutdown(string channel)
     {
-        SendMessage(channel, "Initiating shutdown...");
+        _chatHandler.SendMessage(
+            channel,
+            "Initiating shutdown...");
         _client.Disconnect();
         DbHandler.DisconnectDatabase();
         _shutdownEvent.Set();

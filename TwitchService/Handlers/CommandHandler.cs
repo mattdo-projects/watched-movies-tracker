@@ -1,5 +1,5 @@
-using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchService.Handlers.Commands;
 
 namespace TwitchService.Handlers;
 
@@ -9,13 +9,14 @@ namespace TwitchService.Handlers;
 public class CommandHandler
 {
     private readonly List<Command> _commands = [];
-    private readonly TwitchClient _client;
+    private readonly ChatHandler _chatHandler;
 
-    public CommandHandler(TwitchClient client)
+    public CommandHandler(ChatHandler chatHandler)
     {
-        _client = client;
+        _chatHandler = chatHandler;
 
         Register(new SampleCommand());
+        Register(new HelpCommand());
     }
 
     private void Register(Command command)
@@ -28,8 +29,13 @@ public class CommandHandler
         var matchingCommand = GetMatchingCommand(e.Command.CommandText);
         if (matchingCommand == null) return 1;
 
-        matchingCommand.Execute(e, _client);
+        matchingCommand.Execute(e, _chatHandler);
         return 0;
+    }
+
+    public List<Command> GetRegisteredCommands()
+    {
+        return _commands;
     }
 
     private Command? GetMatchingCommand(string commandString)
