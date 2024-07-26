@@ -16,7 +16,7 @@ public class CommandHandler
         _chatHandler = chatHandler;
 
         Register(new SampleCommand());
-        Register(new HelpCommand());
+        Register(new HelpCommand(_commands));
     }
 
     private void Register(Command command)
@@ -33,13 +33,13 @@ public class CommandHandler
         return 0;
     }
 
-    public List<Command> GetRegisteredCommands()
+    public List<string> GetRegisteredCommandsAsString()
     {
-        return _commands;
+        return _commands.Select(command => command.ToString()).ToList();
     }
 
     private Command? GetMatchingCommand(string commandString)
     {
-        return _commands.FirstOrDefault(command => command.CommandString == commandString);
+        return _commands.FirstOrDefault(command => command.ToString() == commandString);
     }
 }

@@ -7,12 +7,10 @@ namespace TwitchService.Handlers.Commands;
 /// </summary>
 public abstract class Command(string commandString)
 {
+    public abstract void Execute(OnChatCommandReceivedArgs e, ChatHandler chatHandler);
+
     public override string ToString()
     {
         return commandString;
     }
-
-    public string CommandString { get; } = commandString;
-
-    public abstract void Execute(OnChatCommandReceivedArgs e, ChatHandler chatHandler);
 }

@@ -33,6 +33,7 @@ internal class RecordsBot
     private const char CommandPrefix = '!';
     private readonly TwitchClient _client;
     private readonly AutoResetEvent _shutdownEvent;
+    private readonly QueryHandler _queryHandler;
     private readonly ChatHandler _chatHandler;
     private readonly CommandHandler _commandHandler;
 
@@ -63,6 +64,8 @@ internal class RecordsBot
             CommandPrefix
             );
 
+        DbHandler.TestConnection(); // lazy initialization should handle the rest
+
         _client.OnLog += Client_OnLog;
         _client.OnConnected += Client_OnConnected;
         _client.OnJoinedChannel += Client_OnJoinedChannel;
@@ -70,6 +73,7 @@ internal class RecordsBot
         _client.OnChatCommandReceived += Client_OnChatCommandReceived;
         _client.OnDisconnected += Client_OnDisconnected;
 
+        _queryHandler = new QueryHandler();
         _chatHandler = new ChatHandler(_client);
         _commandHandler = new CommandHandler(_chatHandler);
 
