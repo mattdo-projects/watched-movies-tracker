@@ -22,13 +22,14 @@ public static class DbHandler
 
         ExecuteNonQuery(testDropTableQuery);
 
-        const string createTableQuery = @"
-                CREATE TABLE IF NOT EXISTS watched_movies (
-                    id SERIAL PRIMARY KEY,
-                    short_name VARCHAR(255),
-                    movie_name VARCHAR(255),
-                    last_watched DATE
-                );";
+        const string createTableQuery = """
+                                        CREATE TABLE IF NOT EXISTS watched_movies (
+                                            id SERIAL PRIMARY KEY,
+                                            short_name VARCHAR(255),
+                                            movie_name VARCHAR(255),
+                                            last_watched DATE
+                                        );
+                                        """;
 
         ExecuteNonQuery(createTableQuery);
     }
@@ -61,8 +62,12 @@ public static class DbHandler
     public static void InsertWatchedMovie(string movie, DateTime lastSeen)
     {
         const string insertQuery = """
-                                   INSERT INTO watched_movies (short_name, movie_name, last_watched) 
-                                   VALUES (@short, @full, @lastSeen) 
+                                   INSERT INTO watched_movies (short_name, 
+                                                               movie_name, 
+                                                               last_watched) 
+                                   VALUES (@short, 
+                                           @full, 
+                                           @lastSeen) 
                                    RETURNING id;
                                    """;
 
@@ -149,7 +154,7 @@ public static class DbHandler
                 return DateTime.MinValue;
             }
 
-            return (DateTime)result;
+            return (DateTime) result;
         }
         finally
         {
@@ -161,9 +166,9 @@ public static class DbHandler
     public static string? GetFirstMovies()
     {
         const string searchQuery = """
-                                   SELECT DISTINCT ON (id) *
+                                   SELECT movie_name
                                    FROM watched_movies
-                                   ORDER BY id, movie_name
+                                   LIMIT 1;
                                    """;
 
         using var conn = new NpgsqlConnection(Connection.ConnectionString);
