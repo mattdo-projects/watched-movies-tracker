@@ -108,7 +108,7 @@ public sealed class QueryHandler
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.None,
                     out var parsedDate);
-                DbHandler.InsertWatchedMovie(movieWatched, parsedDate);
+                DbHandler.InsertOrUpdateWatchedMovie(movieWatched, parsedDate);
                 _trie.Insert(movieWatched);
             }
             catch (FormatException ex)

@@ -59,7 +59,7 @@ public static class DbHandler
         return cmd.ExecuteNonQuery();
     }
 
-    public static void InsertWatchedMovie(string movie, DateTime lastSeen)
+    public static void InsertOrUpdateWatchedMovie(string movie, DateTime lastSeen)
     {
         const string insertQuery = """
                                    INSERT INTO watched_movies (short_name, 
@@ -68,7 +68,8 @@ public static class DbHandler
                                    VALUES (@short, 
                                            @full, 
                                            @lastSeen) 
-                                   RETURNING id;
+                                   ON CONFLICT (short_name)
+                                   DO UPDATE SET last_watched = EXCLUDED.last_watched
                                    """;
 
         var lower = SanitizeTitle.Sanitize(movie);
@@ -94,12 +95,37 @@ public static class DbHandler
         }
     }
 
-    public static void DeleteWatchedMovie(string normalizedTitle)
+    public static void RemoveDateWatchedMovie(string normalizedTitle)
+    {
+        const string removeQuery = """
+                                   UPDATE watched_movies
+                                   SET last_watched = NULL
+                                   WHERE short_name = @short
+                                   """;
+
+        using var conn = new NpgsqlConnection(Connection.ConnectionString);
+        conn.Open();
+
+        Interlocked.Increment(ref _activeTransactions);
+
+        try
+        {
+            using var cmd = new NpgsqlCommand(removeQuery, conn);
+            cmd.Parameters.AddWithValue("@short", normalizedTitle);
+            cmd.ExecuteScalar();
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _activeTransactions);
+            conn.Close();
+        }
+    }
+
+    public static void DeleteWatchedMovieRecord(string normalizedTitle)
     {
         const string deleteQuery = """
                                    DELETE FROM watched_movies
                                    WHERE short_name = @short
-                                   RETURNING id;
                                    """;
 
         using var conn = new NpgsqlConnection(Connection.ConnectionString);

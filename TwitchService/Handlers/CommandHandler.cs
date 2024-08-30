@@ -1,3 +1,4 @@
+using MovieHandlerService.Handlers;
 using TwitchLib.Client.Events;
 using TwitchService.Handlers.Commands;
 
